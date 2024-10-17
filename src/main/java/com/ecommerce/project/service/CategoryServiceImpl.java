@@ -1,11 +1,11 @@
 package com.ecommerce.project.service;
 
 import com.ecommerce.project.model.Category;
+import com.ecommerce.project.repositories.CategoryRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -17,36 +17,41 @@ import java.util.Optional;
 @Service
 public class CategoryServiceImpl implements CategoryService{
 
-    private final List<Category> categories = new ArrayList<>();
+    private final CategoryRepository categoryRepository;
 
-    private Long nextId = 1L;
+    public CategoryServiceImpl(CategoryRepository categoryRepository) {
+        this.categoryRepository = categoryRepository;
+    }
 
     @Override
     public List<Category> getAllCategories() {
-        return categories;
+        return categoryRepository.findAll();
     }
 
     @Override
     public void createCategory(Category category) {
-        category.setCategoryId(nextId++);
-        categories.add(category);
+        categoryRepository.save(category);
     }
 
     @Override
     public String deleteCategory(Long categoryId) {
+        List<Category> categories = categoryRepository.findAll();
+
         Category category = categories.stream()
                 .filter(c -> c.getCategoryId().equals(categoryId))
                 .findFirst()
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Resource not found"));
 
 
-        categories.remove(category);
+        categoryRepository.delete(category);
 
         return "Category with categoryId: " + categoryId + " deleted successfully";
     }
 
     @Override
     public Category updateCategory(Category category, Long categoryId) {
+        List<Category> categories = categoryRepository.findAll();
+
         Optional<Category> optionalCategory = categories.stream()
                 .filter(c -> c.getCategoryId().equals(categoryId))
                 .findFirst();
@@ -54,7 +59,7 @@ public class CategoryServiceImpl implements CategoryService{
         if(optionalCategory.isPresent()) {
             Category categoryToUpdate = optionalCategory.get();
             categoryToUpdate.setCategoryName(category.getCategoryName());
-            return categoryToUpdate;
+            return categoryRepository.save(categoryToUpdate);
         } else {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Category not found");
         }
