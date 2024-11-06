@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
  * Date:2024-09-20
  */
 @RestController
-@RequestMapping("/api/public")
+@RequestMapping("/api/public/categories")
 public class CategoryController {
 
     private final CategoryService categoryService;
@@ -32,7 +32,7 @@ public class CategoryController {
         this.categoryService = categoryService;
     }
 
-    @GetMapping("/categories")
+    @GetMapping()
     public ResponseEntity<CategoryResponse> getAllCategories(@RequestParam(name = "pageNumber",
                                                                      defaultValue = AppConstants.PAGE_NUMBER,
                                                                      required = false) Integer pageNumber,
@@ -45,19 +45,19 @@ public class CategoryController {
         return new ResponseEntity<>(categoryResponse, HttpStatus.OK);
     }
 
-    @PostMapping("/categories")
+    @PostMapping()
     public ResponseEntity<CategoryDTO> createCategory(@Valid @RequestBody CategoryDTO categoryDTO) {
         CategoryDTO savedCategoryDTO = categoryService.createCategory(categoryDTO);
         return new ResponseEntity<>(savedCategoryDTO, HttpStatus.CREATED);
     }
 
-    @DeleteMapping("/categories/{categoryId}")
+    @DeleteMapping("/{categoryId}")
     public ResponseEntity<CategoryDTO> deleteCategory(@PathVariable Long categoryId) {
         CategoryDTO deletedCategory = categoryService.deleteCategory(categoryId);
         return new ResponseEntity<>(deletedCategory, HttpStatus.OK);
     }
 
-    @PutMapping("/categories/{categoryId}")
+    @PutMapping("/{categoryId}")
     public ResponseEntity<CategoryDTO> updateCategory(@Valid @RequestBody CategoryDTO categoryDTO,
             @PathVariable Long categoryId) {
 
