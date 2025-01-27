@@ -8,8 +8,11 @@ import com.ecommerce.project.payload.ProductResponse;
 import com.ecommerce.project.repositories.CategoryRepository;
 import com.ecommerce.project.repositories.ProductRepository;
 import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -25,11 +28,17 @@ public class ProductServiceImpl implements ProductService {
 
     private final ModelMapper modelMapper;
 
+    private final FileService fileService;
+
+    @Value("${project.image}")
+    private String path;
+
     public ProductServiceImpl(ProductRepository productRepository, CategoryRepository categoryRepository,
-                              ModelMapper modelMapper) {
+                              ModelMapper modelMapper, FileService fileService) {
         this.productRepository = productRepository;
         this.categoryRepository = categoryRepository;
         this.modelMapper = modelMapper;
+        this.fileService = fileService;
     }
 
 
@@ -123,5 +132,19 @@ public class ProductServiceImpl implements ProductService {
         productRepository.delete(productFromDb);
 
         return modelMapper.map(productFromDb, ProductDTO.class);
+    }
+
+    @Override
+    public ProductDTO updateProductImage(Long productId, MultipartFile image) throws IOException {
+        Product productFromDb =  productRepository.findById(productId)
+                .orElseThrow(() -> new ResourceNotFoundException("Product", "productId", productId));
+
+        String fileName = fileService.uploadImage(path, image);
+
+        productFromDb.setImg(fileName);
+
+        Product saveUpdatedProduct = productRepository.save(productFromDb);
+
+        return modelMapper.map(saveUpdatedProduct, ProductDTO.class);
     }
 }
